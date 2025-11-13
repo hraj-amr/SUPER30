@@ -20,6 +20,8 @@ export default function RegisterStudent() {
   const [passportPhoto, setPassportPhoto] = useState(null);
   const [identityPhoto, setIdentityPhoto] = useState(null);
 
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+
   useEffect(() => {
     setFormData((prev) => ({ ...prev, classMoving: "10th to 11th" }));
   }, []);
@@ -29,13 +31,12 @@ export default function RegisterStudent() {
   };
 
   const handleFileChange = (name, file) => {
-  if (name === "passportPhoto") setPassportPhoto(file);
-  if (name === "identityPhoto") setIdentityPhoto(file);
-};
+    if (name === "passportPhoto") setPassportPhoto(file);
+    if (name === "identityPhoto") setIdentityPhoto(file);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setIsSubmitting(true);
 
     try {
@@ -46,7 +47,7 @@ export default function RegisterStudent() {
       if (identityPhoto) form.append("identityPhoto", identityPhoto);
 
       const res = await axios.post(
-        "http://localhost:8000/api/students/register",
+        `${backendURL}/api/students/register`,
         form,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -70,282 +71,364 @@ export default function RegisterStudent() {
 
 
   return (
-  <main className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
-  <div className="max-w-4xl mx-auto">
-    <div className="mb-6 sm:mb-8">
+    <main className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">Student Registration</h1>
-          <p className="text-base sm:text-lg text-muted-foreground">Complete the form below to enroll in our institution</p>
-    </div>
-    
-    <form
-      onSubmit={handleSubmit}
-      encType="multipart/form-data"
-      className="space-y-4 sm:space-y-6"
-    >
-      <FormSection title="Personal Information" description="Enter your basic personal details">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Student Name */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Student Name<span className="text-red-500"> *</span></FieldLabel>
-            <Input className="border border-slate-200 rounded-lg bg-white w-full" name="studentName" placeholder="Enter Your Full Name" onChange={handleChange} required />
-          </Field>
-
-          {/* DOB */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Date of Birth<span className="text-red-500"> *</span></FieldLabel>
-            <Input className="border border-slate-200 rounded-lg bg-white w-full" type="date" name="dateOfBirth" onChange={handleChange} required />
-          </Field>
-
-          {/* Gender */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Gender<span className="text-red-500"> *</span></FieldLabel>
-            <Input className="border border-slate-200 rounded-lg bg-white w-full" name="gender" placeholder="Male / Female" onChange={handleChange} required />
-          </Field>
-
-          {/* Email Address */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Email Address<span className="text-red-500"> *</span></FieldLabel>
-            <Input className="border border-slate-200 rounded-lg bg-white w-full" type="email" name="email" placeholder="example@gmail.com" onChange={handleChange} required />
-          </Field>
+          <p className="text-base sm:text-lg text-muted-foreground">
+            Complete the form below to enroll in our institution
+          </p>
         </div>
-      </FormSection>
 
-      <FormSection title="Family Information" description="Enter your parent's details">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Father Name */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Father Name<span className="text-red-500"> *</span></FieldLabel>
-            <Input className="border border-slate-200 rounded-lg bg-white w-full" name="fatherName" placeholder="Enter Father's Full Name" onChange={handleChange} required />
-          </Field>
+        <form
+          onSubmit={handleSubmit}
+          encType="multipart/form-data"
+          className="space-y-4 sm:space-y-6"
+        >
+          {/* PERSONAL INFORMATION */}
+          <FormSection title="Personal Information" description="Enter your basic personal details">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <Field>
+                <FieldLabel className="block text-sm font-medium text-foreground mb-2">
+                  Student Name<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Input className="border border-slate-200 rounded-lg bg-white w-full"
+                  name="studentName"
+                  placeholder="Enter Your Full Name"
+                  onChange={handleChange}
+                  required
+                />
+              </Field>
 
-          {/* Mother Name */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Mother Name<span className="text-red-500"> *</span></FieldLabel>
-            <Input className="border border-slate-200 rounded-lg bg-white w-full" name="motherName" placeholder="Enter Mother's Full Name" onChange={handleChange} required />
-          </Field>
+              <Field>
+                <FieldLabel className="block text-sm font-medium text-foreground mb-2">
+                  Date of Birth<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Input className="border border-slate-200 rounded-lg bg-white w-full"
+                  type="date"
+                  name="dateOfBirth"
+                  onChange={handleChange}
+                  required
+                />
+              </Field>
 
-          {/* Parent Mobile */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Parent Mobile No.<span className="text-red-500"> *</span></FieldLabel>
-            <div className="flex items-center w-full"><span className="h-10 flex items-center px-3 bg-slate-100 border border-slate-200/60 border-r-0 rounded-l-lg shadow-sm text-sm text-slate-700 whitespace-nowrap">
-              +91
-            </span><Input className="h-10 bg-white border border-slate-200/60 border-l-0 rounded-l-none rounded-r-lg shadow-sm w-full flex-1" type="tel" name="parentMobile" placeholder="Enter Mobile Number" maxLength="10" onChange={handleChange} required />
+              <Field>
+                <FieldLabel className="block text-sm font-medium text-foreground mb-2">
+                  Gender<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Input className="border border-slate-200 rounded-lg bg-white w-full"
+                  name="gender"
+                  placeholder="Male / Female"
+                  onChange={handleChange}
+                  required
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel className="block text-sm font-medium text-foreground mb-2">
+                  Email Address<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Input
+                  className="border border-slate-200 rounded-lg bg-white w-full"
+                  type="email"
+                  name="email"
+                  placeholder="example@gmail.com"
+                  onChange={handleChange}
+                  required
+                />
+              </Field>
             </div>
-          </Field>
+          </FormSection>
 
-          {/* Student Mobile */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Student Mobile No.<span className="text-red-500"> *</span></FieldLabel>
-            <div className="flex items-center w-full"><span className="h-10 flex items-center px-3 bg-slate-100 border border-slate-200/60 border-r-0 rounded-l-lg shadow-sm text-sm text-slate-700 whitespace-nowrap">
-              +91
-            </span><Input className="h-10 bg-white border border-slate-200/60 border-l-0 rounded-l-none rounded-r-lg shadow-sm w-full flex-1" type="tel" name="studentMobile" placeholder="Enter Mobile Number" maxLength="10" onChange={handleChange} required /></div>
-          </Field>
-        </div>
-      </FormSection>
+          {/* FAMILY INFORMATION */}
+          <FormSection title="Family Information" description="Enter your parent's details">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Father Name<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Input name="fatherName" placeholder="Enter Father's Full Name"
+                  onChange={handleChange}
+                  className="border border-slate-200 rounded-lg bg-white w-full"
+                  required
+                />
+              </Field>
 
-      <FormSection title="Address Information" description="Provide your residential details">
-        <div className="space-y-4">
-          {/* Permanent Address */}
-          <Field className="col-span-2">
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Permanent Address<span className="text-red-500"> *</span></FieldLabel>
-            <textarea
-              name="permanentAddress"
-              placeholder="Enter Your Permanent Address"
-              onChange={handleChange}
-              className="border border-slate-200 rounded-lg p-3 bg-white placeholder:text-sm w-full min-h-20"
-              required
-            />
-          </Field>
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Mother Name<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Input name="motherName" placeholder="Enter Mother's Full Name"
+                  onChange={handleChange}
+                  className="border border-slate-200 rounded-lg bg-white w-full"
+                  required
+                />
+              </Field>
 
-          {/* Present Address */}
-          <Field className="col-span-2">
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Present Address<span className="text-red-500"> *</span></FieldLabel>
-            <textarea
-              name="presentAddress"
-              placeholder="Enter Your Present Address"
-              onChange={handleChange}
-              className="border border-slate-200 rounded-lg p-3 bg-white placeholder:text-sm w-full min-h-20"
-              required
-            />
-          </Field>
-        </div>
-      </FormSection>
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Parent Mobile No.<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <div className="flex items-center w-full">
+                  <span className="h-10 flex items-center px-3 bg-slate-100 border border-slate-200/60 border-r-0 rounded-l-lg text-sm text-slate-700">
+                    +91
+                  </span>
+                  <Input className="h-10 bg-white border border-slate-200/60 border-l-0 rounded-l-none rounded-r-lg shadow-sm w-full"
+                    type="tel"
+                    name="parentMobile"
+                    placeholder="Enter Mobile Number"
+                    maxLength="10"
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </Field>
 
-      <FormSection title="Academic Information" description="Select your academic preferences and previous school details">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Class Moving */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Class Moving To<span className="text-red-500"> *</span></FieldLabel>
-            <Select value="10th to 11th" disabled>
-              <SelectTrigger className="bg-gray-100 cursor-not-allowed border border-slate-200 text-black w-full">
-                <SelectValue />
-              </SelectTrigger>
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Student Mobile No.<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <div className="flex items-center w-full">
+                  <span className="h-10 flex items-center px-3 bg-slate-100 border border-slate-200/60 border-r-0 rounded-l-lg text-sm text-slate-700">
+                    +91
+                  </span>
+                  <Input className="h-10 bg-white border border-slate-200/60 border-l-0 rounded-l-none rounded-r-lg shadow-sm w-full"
+                    type="tel"
+                    name="studentMobile"
+                    placeholder="Enter Mobile Number"
+                    maxLength="10"
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </Field>
+            </div>
+          </FormSection>
 
-              <SelectContent>
-                <SelectItem value="10th to 11th">10th to 11th</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
+          {/* ADDRESS INFORMATION */}
+          <FormSection title="Address Information" description="Provide your residential details">
+            <div className="space-y-4">
+              
+              <Field className="col-span-2">
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Permanent Address<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <textarea
+                  name="permanentAddress"
+                  placeholder="Enter Your Permanent Address"
+                  onChange={handleChange}
+                  className="border border-slate-200 rounded-lg p-3 bg-white min-h-20 w-full"
+                  required
+                />
+              </Field>
 
-          {/* Stream */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Select Stream<span className="text-red-500"> *</span></FieldLabel>
-            <Select
-              value={formData.stream || ""}                 // controlled value
-              onValueChange={(value) =>
-                setFormData({ ...formData, stream: value }) // update form data
-              }
-            >
-              <SelectTrigger className="border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0 w-full">
-                <SelectValue placeholder="Select Stream" />
-              </SelectTrigger>
+              <Field className="col-span-2">
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Present Address<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <textarea
+                  name="presentAddress"
+                  placeholder="Enter Your Present Address"
+                  onChange={handleChange}
+                  className="border border-slate-200 rounded-lg p-3 bg-white min-h-20 w-full"
+                  required
+                />
+              </Field>
+            </div>
+          </FormSection>
 
-              <SelectContent className="bg-white border border-slate-200/70 shadow-[0_4px_20px_rgba(0,0,0,0.08)] rounded-xl p-1">
-                <SelectItem value="PCM" className="text-sm px-3 py-2 rounded-lg cursor-pointer transition text-slate-700 hover:bg-slate-100/70 data-highlighted:bg-slate-100/70 data-highlighted:text-slate-700 data-[state=checked]:bg-slate-200/60 data-[state=checked]:font-medium data-[state=checked]:text-slate-700">
-                  PCM
-                </SelectItem>
+          {/* ACADEMIC INFORMATION */}
+          <FormSection title="Academic Information" description="Select your academic preferences and previous school details">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                <SelectItem value="PCB" className="text-sm px-3 py-2 rounded-lg cursor-pointer transition text-slate-700 hover:bg-slate-100/70 data-highlighted:bg-slate-100/70 data-highlighted:text-slate-700 data-[state=checked]:bg-slate-200/60 data-[state=checked]:font-medium data-[state=checked]:text-slate-700">
-                  PCB
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Class Moving To<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Select value="10th to 11th" disabled>
+                  <SelectTrigger className="bg-gray-100 cursor-not-allowed border border-slate-200 text-black w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10th to 11th">10th to 11th</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
 
-          {/* Target */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Target<span className="text-red-500"> *</span></FieldLabel>
-            <Select
-              value={formData.target || ""}
-              onValueChange={(value) =>
-                setFormData({ ...formData, target: value })
-              }
-            >
-              <SelectTrigger className="border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0 w-full">
-                <SelectValue placeholder="Select Target" />
-              </SelectTrigger>
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Select Stream<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Select
+                  value={formData.stream || ""}
+                  onValueChange={(value) => setFormData({ ...formData, stream: value })}
+                >
+                  <SelectTrigger className="border border-slate-200 rounded-lg bg-white w-full">
+                    <SelectValue placeholder="Select Stream" />
+                  </SelectTrigger>
 
-              <SelectContent>
-                <SelectItem value="JEE" className="text-sm px-3 py-2 rounded-lg cursor-pointer transition text-slate-700 hover:bg-slate-100/70 data-highlighted:bg-slate-100/70 data-highlighted:text-slate-700 data-[state=checked]:bg-slate-200/60 data-[state=checked]:font-medium data-[state=checked]:text-slate-700">JEE</SelectItem>
-                <SelectItem value="NEET" className="text-sm px-3 py-2 rounded-lg cursor-pointer transition text-slate-700 hover:bg-slate-100/70 data-highlighted:bg-slate-100/70 data-highlighted:text-slate-700 data-[state=checked]:bg-slate-200/60 data-[state=checked]:font-medium data-[state=checked]:text-slate-700">NEET</SelectItem>
-                <SelectItem value="CBSE Board" className="text-sm px-3 py-2 rounded-lg cursor-pointer transition text-slate-700 hover:bg-slate-100/70 data-highlighted:bg-slate-100/70 data-highlighted:text-slate-700 data-[state=checked]:bg-slate-200/60 data-[state=checked]:font-medium data-[state=checked]:text-slate-700">CBSE Board</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
+                  <SelectContent>
+                    <SelectItem value="PCM">PCM</SelectItem>
+                    <SelectItem value="PCB">PCB</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
 
-          {/* Previous Result */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Student's Previous Result (In Percentage)<span className="text-red-500"> *</span></FieldLabel>
-            <Input className="border border-slate-200 rounded-lg bg-white w-full" placeholder="Enter Percentage" type="number" name="previousResultPercentage" step="0.01" min="0" max="100" onChange={handleChange} />
-          </Field>
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Target<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Select
+                  value={formData.target || ""}
+                  onValueChange={(value) => setFormData({ ...formData, target: value })}
+                >
+                  <SelectTrigger className="border border-slate-200 rounded-lg bg-white w-full">
+                    <SelectValue placeholder="Select Target" />
+                  </SelectTrigger>
 
-          {/* Previous School */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Previous School Name<span className="text-red-500"> *</span></FieldLabel>
-            <Input className="border border-slate-200 rounded-lg bg-white w-full" placeholder="Enter Previous School Name" name="previousSchool" onChange={handleChange} required />
-          </Field>
+                  <SelectContent>
+                    <SelectItem value="JEE">JEE</SelectItem>
+                    <SelectItem value="NEET">NEET</SelectItem>
+                    <SelectItem value="CBSE Board">CBSE Board</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
 
-          {/* Test Centre */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Test Centre<span className="text-red-500"> *</span></FieldLabel>
-            <Select
-              value="British School Gurukul, Near Chopra Agencies, South Bisar Tank, Gaya (Bihar)"
-              disabled
-            >
-              <SelectTrigger className="bg-gray-100 cursor-not-allowed text-slate-700 border border-slate-200 rounded-lg opacity-70 w-full">
-                <SelectValue />
-              </SelectTrigger>
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Student's Previous Result (In Percentage)<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Input
+                  name="previousResultPercentage"
+                  placeholder="Enter Percentage"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  onChange={handleChange}
+                  className="border border-slate-200 rounded-lg bg-white w-full"
+                />
+              </Field>
 
-              <SelectContent>
-                <SelectItem value="British School Gurukul, Near Chopra Agencies, South Bisar Tank, Gaya (Bihar)">
-                  British School Gurukul, Near Chopra Agencies, South Bisar Tank, Gaya (Bihar)
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
-        </div>
-      </FormSection>
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Previous School Name<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Input
+                  name="previousSchool"
+                  placeholder="Enter Previous School Name"
+                  onChange={handleChange}
+                  className="border border-slate-200 rounded-lg bg-white w-full"
+                  required
+                />
+              </Field>
 
-      <FormSection title="Scholarship Details" description="Provide scholarship information if applicable">
-        <div className="space-y-4">
-          {/* Scholarship option */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Scholarship Offered?<span className="text-red-500"> *</span></FieldLabel>
-            <Select
-              value={formData.scholarshipOffered === true ? "yes" : formData.scholarshipOffered === false ? "no" : ""}
-              onValueChange={(value) => {
-                const boolValue = value === "yes";
-                setScholarship(boolValue);
-                setFormData({ ...formData, scholarshipOffered: boolValue });
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Test Centre<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Select value="British School Gurukul, Near Chopra Agencies, South Bisar Tank, Gaya (Bihar)" disabled>
+                  <SelectTrigger className="bg-gray-100 cursor-not-allowed text-slate-700 border border-slate-200 rounded-lg opacity-70 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="British School Gurukul, Near Chopra Agencies, South Bisar Tank, Gaya (Bihar)">
+                      British School Gurukul, Near Chopra Agencies, South Bisar Tank, Gaya (Bihar)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+          </FormSection>
 
-              <SelectContent>
-                <SelectItem value="yes" className="text-sm px-3 py-2 rounded-lg cursor-pointer transition text-slate-700 hover:bg-slate-100/70 data-highlighted:bg-slate-100/70 data-highlighted:text-slate-700 data-[state=checked]:bg-slate-200/60 data-[state=checked]:font-medium data-[state=checked]:text-slate-700">Yes</SelectItem>
-                <SelectItem value="no" className="text-sm px-3 py-2 rounded-lg cursor-pointer transition text-slate-700 hover:bg-slate-100/70 data-highlighted:bg-slate-100/70 data-highlighted:text-slate-700 data-[state=checked]:bg-slate-200/60 data-[state=checked]:font-medium data-[state=checked]:text-slate-700">No</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
+          {/* SCHOLARSHIP SECTION */}
+          <FormSection title="Scholarship Details" description="Provide scholarship information if applicable">
+            <div className="space-y-4">
+              
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Scholarship Offered?<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <Select
+                  value={formData.scholarshipOffered === true ? "yes" : formData.scholarshipOffered === false ? "no" : ""}
+                  onValueChange={(value) => {
+                    const boolValue = value === "yes";
+                    setScholarship(boolValue);
+                    setFormData({ ...formData, scholarshipOffered: boolValue });
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
 
-          {/* Scholarship Details */}
-          <Field className="col-span-2">
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Scholarship Details</FieldLabel>
-            <textarea
-              name="scholarshipDetails"
-              placeholder="Specify Scholarship details (From Where and How Much)"
-              onChange={handleChange}
-              disabled={!scholarship}
-              className={`border border-slate-200 rounded-lg p-3 bg-white placeholder:text-sm w-full min-h-20 ${
-                !scholarship ? "bg-slate-100 border border-slate-200/60 cursor-not-allowed" : ""
-              }`}
-            />
-          </Field>
-        </div>
-      </FormSection>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
 
-       <FormSection title="Document Upload" description="Upload required documents">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Photo Uploads */}
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">Recent Passport Size Photo<span className="text-red-500"> *</span></FieldLabel>
-            <FileUpload
-              name="passportPhoto"
-              accept="image/*"
-              onFileSelect={handleFileChange}
-            />
-          </Field>
+              <Field className="col-span-2">
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">Scholarship Details</FieldLabel>
+                <textarea
+                  name="scholarshipDetails"
+                  placeholder="Specify Scholarship details"
+                  onChange={handleChange}
+                  disabled={!scholarship}
+                  className={`border rounded-lg p-3 min-h-20 w-full ${
+                    !scholarship ? "bg-slate-100 cursor-not-allowed" : "bg-white"
+                  }`}
+                />
+              </Field>
+            </div>
+          </FormSection>
 
-          <Field>
-            <FieldLabel className="block text-sm font-medium text-foreground mb-2">School ID Card / Identity Proof (Aadhar Card)<span className="text-red-500"> *</span></FieldLabel>
-            <FileUpload
-              name="identityPhoto"
-              accept="image/*"
-              onFileSelect={handleFileChange}
-            />
-          </Field>
-        </div>
-      </FormSection>
+          {/* DOCUMENT UPLOAD */}
+          <FormSection title="Document Upload" description="Upload required documents">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-      {/* Submit button with spinner */}
-      <Button
-        disabled={isSubmitting}
-        type="submit"
-        className="col-span-2 justify-self-center w-full sm:w-fit flex items-center justify-center gap-2"
-      >
-        {isSubmitting ? (
-          <>
-            <Spinner /> Registering...
-          </>
-        ) : (
-          "Register Student"
-        )}
-      </Button>
-    </form>
-  </div>
-</main>
-);
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  Recent Passport Size Photo<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <FileUpload
+                  name="passportPhoto"
+                  accept="image/*"
+                  onFileSelect={handleFileChange}
+                />
+              </Field>
 
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  School ID Card / Identity Proof (Aadhar Card)<span className="text-red-500"> *</span>
+                </FieldLabel>
+                <FileUpload
+                  name="identityPhoto"
+                  accept="image/*"
+                  onFileSelect={handleFileChange}
+                />
+              </Field>
+            </div>
+          </FormSection>
+
+          <Button
+            disabled={isSubmitting}
+            type="submit"
+            className="w-full sm:w-fit flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <Spinner /> Registering...
+              </>
+            ) : (
+              "Register Student"
+            )}
+          </Button>
+
+        </form>
+      </div>
+    </main>
+  );
 }

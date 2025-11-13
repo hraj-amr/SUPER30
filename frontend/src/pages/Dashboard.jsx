@@ -21,11 +21,11 @@ export default function Dashboard() {
   const token = localStorage.getItem("adminToken");
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#D7263D", "#6A4C93"];
 
-
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   const fetchExamSettings = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/admin/exam-settings", {
+      const res = await axios.get(`${backendURL}/api/admin/exam-settings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setExamDate(res.data.examDate || "");
@@ -37,7 +37,7 @@ export default function Dashboard() {
   const updateExamSettings = async () => {
     try {
       await axios.post(
-        "http://localhost:8000/api/admin/exam-settings",
+        `${backendURL}/api/admin/exam-settings`,
         { examDate },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -48,36 +48,33 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ Fetch Dashboard Data
   const fetchDashboardData = async () => {
-  try {
-    const res = await axios.get("http://localhost:8000/api/admin/dashboard-stats", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setStats(res.data);
+    try {
+      const res = await axios.get(`${backendURL}/api/admin/dashboard-stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStats(res.data);
 
-    const summaryRes = await axios.get("http://localhost:8000/api/admin/summary-stats", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setSummary(summaryRes.data);
-  } catch (error) {
-    toast.error("Failed to load dashboard data");
-    console.error(error);
-  }
-};
+      const summaryRes = await axios.get(`${backendURL}/api/admin/summary-stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSummary(summaryRes.data);
+    } catch (error) {
+      toast.error("Failed to load dashboard data");
+      console.error(error);
+    }
+  };
 
-    // Load all data on mount
   useEffect(() => {
     fetchDashboardData();
     fetchExamSettings();
   }, []);
 
-  // -------------------------- RESET STUDENT ID ---------------------
   const resetCounter = async () => {
     if (!window.confirm("This will reset Student ID counter to STU0001. Continue?")) return;
     try {
       setLoadingReset(true);
-      await axios.post("http://localhost:8000/api/students/reset-id-counter", null, {
+      await axios.post(`${backendURL}/api/students/reset-id-counter`, null, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Counter reset successfully. Next student will be STU0001.");
@@ -88,8 +85,6 @@ export default function Dashboard() {
     }
   };
 
-
-  // -------------------------- GENERATE ROLL NO. ---------------------
   const generateRollNo = async () => {
     if (!order) {
       toast.warning("Please select order (alphabetical or random).");
@@ -99,7 +94,7 @@ export default function Dashboard() {
     try {
       setLoadingRoll(true);
       const payload = { order };
-      await axios.post("http://localhost:8000/api/admin/generate-rollno", payload, {
+      await axios.post(`${backendURL}/api/admin/generate-rollno`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success(`Roll numbers generated (by stream) — order: ${order}`);
@@ -111,13 +106,12 @@ export default function Dashboard() {
     }
   };
 
-  // -------------------------- CLEAR DATABASE ---------------------
   const clearDatabase = async () => {
     if (!window.confirm("⚠️ Are you sure? All student data will be erased permanently.")) return;
 
     try {
       setLoading(true);
-      await axios.delete("http://localhost:8000/api/admin/clear-database", {
+      await axios.delete(`${backendURL}/api/admin/clear-database`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("✅ All student data cleared!");
@@ -129,7 +123,6 @@ export default function Dashboard() {
     }
   };
 
-  // -------------------------- Render Pie Chart ---------------------
   const renderPieChart = (title, data, showLabel = true) => (
     <div className="flex flex-col bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-slate-100 hover:shadow-xl transition-shadow">
       <h2 className="text-sm sm:text-base md:text-lg font-semibold text-foreground mb-4">{title}</h2>
@@ -179,51 +172,47 @@ export default function Dashboard() {
         <div className="w-full max-w-7xl mx-auto">
           <h1 className="text-2xl sm:text-3xl pb-6 sm:pb-8 font-bold text-foreground lg:text-4xl">Dashboard</h1>
 
-        {/* ------------------------ Summary Cards ------------------------- */}
-        {summary && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-            {/* Total Students */}
-            <div className="bg-linear-to-br from-blue-500/10 to-cyan-500/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-blue-200/20 flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-xs sm:text-sm font-semibold text-blue-600">Total Students</h3>
-                <p className="text-xl sm:text-2xl font-bold text-blue-900">{summary.totalStudents}</p>
-              </div>
-              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 shrink-0" />
-            </div>
+          {summary && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
 
-            {/* PCM Students */}
-            <div className="bg-linear-to-br from-emerald-500/10 to-teal-500/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-emerald-200/20 flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-xs sm:text-sm font-semibold text-emerald-600">PCM Students</h3>
-                <p className="text-xl sm:text-2xl font-bold text-emerald-900">{summary.pcmCount}</p>
+              <div className="bg-linear-to-br from-blue-500/10 to-cyan-500/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-blue-200/20 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs sm:text-sm font-semibold text-blue-600">Total Students</h3>
+                  <p className="text-xl sm:text-2xl font-bold text-blue-900">{summary.totalStudents}</p>
+                </div>
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 shrink-0" />
               </div>
-              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0" />
-            </div>
 
-            {/* PCB Students */}
-            <div className="bg-linear-to-br from-amber-500/10 to-orange-500/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-amber-200/20 flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-xs sm:text-sm font-semibold text-amber-600">PCB Students</h3>
-                <p className="text-xl sm:text-2xl font-bold text-amber-900">{summary.pcbCount}</p>
+              <div className="bg-linear-to-br from-emerald-500/10 to-teal-500/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-emerald-200/20 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs sm:text-sm font-semibold text-emerald-600">PCM Students</h3>
+                  <p className="text-xl sm:text-2xl font-bold text-emerald-900">{summary.pcmCount}</p>
+                </div>
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0" />
               </div>
-              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 shrink-0" />
-            </div>
 
-            {/* Admit Cards */}
-            <div className="bg-linear-to-br from-violet-500/10 to-purple-500/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-violet-200/20 flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-xs sm:text-sm font-semibold text-violet-600">Admit Cards Generated</h3>
-                <p className="text-xl sm:text-2xl font-bold text-violet-900">{summary.admitCardGenerated}</p>
+              <div className="bg-linear-to-br from-amber-500/10 to-orange-500/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-amber-200/20 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs sm:text-sm font-semibold text-amber-600">PCB Students</h3>
+                  <p className="text-xl sm:text-2xl font-bold text-amber-900">{summary.pcbCount}</p>
+                </div>
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 shrink-0" />
               </div>
-              <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-violet-600 shrink-0" />
+
+              <div className="bg-linear-to-br from-violet-500/10 to-purple-500/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-violet-200/20 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs sm:text-sm font-semibold text-violet-600">Admit Cards Generated</h3>
+                  <p className="text-xl sm:text-2xl font-bold text-violet-900">{summary.admitCardGenerated}</p>
+                </div>
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-violet-600 shrink-0" />
+              </div>
             </div>
-          </div>
-        )}
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground mb-4">Management Tools</h2>
-          {/* ------------------ Dashboard Control Cards ------------------ */}
+          )}
+
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground mb-4">Management Tools</h2>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
 
-            {/* ----------------------- Roll Number Generator ---------------------- */}
             <ActionCard
               title="Generate Roll Numbers"
               description="Assign roll numbers by stream"
@@ -243,9 +232,8 @@ export default function Dashboard() {
                 <option value="random">Random</option>
               </select>
             </ActionCard>
-            
-            {/* ------------------ Exam Settings Card ------------------ */}
-           <ActionCard
+
+            <ActionCard
               title="Set Exam Date"
               description="Configure the exam schedule"
               buttonLabel="Save Exam Date"
@@ -253,10 +241,7 @@ export default function Dashboard() {
               variant="default"
               icon={<Calendar size={20} />}
             >
-              <label className="text-sm font-medium text-foreground block">
-                Exam Date
-              </label>
-
+              <label className="text-sm font-medium text-foreground block">Exam Date</label>
               <Input
                 type="date"
                 value={examDate}
@@ -265,7 +250,6 @@ export default function Dashboard() {
               />
             </ActionCard>
 
-            {/* ----------------------- Reset Counter ---------------------- */}
             <ActionCard
               title="Reset Student ID"
               description="Reset Student ID counter back to STU0001"
@@ -278,7 +262,6 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground">This will reset the student ID counter back to STU0001.</p>
             </ActionCard>
 
-            {/* ----------------------- Clear Database ---------------------- */}
             <ActionCard
               title="Clear Database"
               description="Delete all student records permanently"
@@ -294,21 +277,22 @@ export default function Dashboard() {
             </ActionCard>
 
           </div>
-        
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground pt-8 mb-4">Analytics</h2>
-        {/* ----------------------------- Pie Charts -------------------------------- */}
-        {stats ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {renderPieChart("Gender Distribution", stats.gender, true)}
-            {renderPieChart("Stream", stats.stream, true)}
-            {renderPieChart("Target Exam", stats.target, true)}
-            {renderPieChart("Class Moving", stats.classMoving, false)}
-            {renderPieChart("Test Centre", stats.testCentre, false)}
-            {renderPieChart("Scholarship Offered", stats.scholarship, true)}
-          </div>
-        ) : (
-          <p className="text-muted-foreground text-center py-8">Loading charts...</p>
-        )}
+
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground pt-8 mb-4">Analytics</h2>
+
+          {stats ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {renderPieChart("Gender Distribution", stats.gender, true)}
+              {renderPieChart("Stream", stats.stream, true)}
+              {renderPieChart("Target Exam", stats.target, true)}
+              {renderPieChart("Class Moving", stats.classMoving, false)}
+              {renderPieChart("Test Centre", stats.testCentre, false)}
+              {renderPieChart("Scholarship Offered", stats.scholarship, true)}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-center py-8">Loading charts...</p>
+          )}
+
         </div>
       </div>
     </div>

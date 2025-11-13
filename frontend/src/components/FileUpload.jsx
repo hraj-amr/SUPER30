@@ -11,7 +11,7 @@ export function FileUpload({ name, accept = "*", onFileSelect }) {
     const file = e.target.files?.[0];
     if (file) {
       setFileName(file.name);
-      onFileSelect && onFileSelect(name, file);  // 🔥 send name + file
+      onFileSelect && onFileSelect(name, file);  // send name + file
     }
   };
 
@@ -27,7 +27,7 @@ export function FileUpload({ name, accept = "*", onFileSelect }) {
     const file = e.dataTransfer.files?.[0];
     if (file) {
       setFileName(file.name);
-      onFileSelect && onFileSelect(name, file);  // 🔥 send name + file
+      onFileSelect && onFileSelect(name, file);  // send name + file
     }
   };
 

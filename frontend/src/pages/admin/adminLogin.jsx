@@ -19,6 +19,8 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -28,11 +30,14 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:8000/api/admin/login", formData);
+      const res = await axios.post(
+        `${backendURL}/api/admin/login`,
+        formData
+      );
 
       toast.success("Login Successful!");
 
-      // ✅ Save token
+      // Save token
       localStorage.setItem("adminToken", res.data.token);
 
       navigate("/admin/dashboard");
@@ -52,7 +57,6 @@ export default function AdminLogin() {
       >
         <h2 className="text-3xl text-center font-semibold pb-2">Admin Login</h2>
 
-        {/* Username */}
         <Input
           type="text"
           name="username"
@@ -62,7 +66,6 @@ export default function AdminLogin() {
           className="rounded-lg p-3"
         />
 
-        {/* Password with SHOW/HIDE icon */}
         <div className="relative">
           <Input
             type={showPassword ? "text" : "password"}
@@ -73,7 +76,6 @@ export default function AdminLogin() {
             className="rounded-lg p-3 w-full pr-12"
           />
 
-          {/* Eye Icon Button */}
           <Button
             type="button"
             variant="ghost"
@@ -90,7 +92,6 @@ export default function AdminLogin() {
           </Button>
         </div>
 
-        {/* Login Button */}
         <Button
           disabled={loading}
           type="submit"

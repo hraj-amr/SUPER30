@@ -23,12 +23,13 @@ export default function StudentsList() {
   const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem("adminToken");
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   // ✅ Fetch students with filters
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:8000/api/students/all", {
+      const res = await axios.get(`${backendURL}/api/students/all`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           search,
@@ -38,12 +39,13 @@ export default function StudentsList() {
         },
       });
       const data = res.data.data || res.data;
-      // Sort by numeric part of studentId so STU0001 appears first
+
       data.sort((a, b) => {
         const na = parseInt((a.studentId || "").replace(/\D/g, "")) || 0;
         const nb = parseInt((b.studentId || "").replace(/\D/g, "")) || 0;
         return na - nb;
       });
+
       setStudents(data);
     } catch (error) {
       console.error("Error fetching students:", error);
@@ -57,12 +59,10 @@ export default function StudentsList() {
     fetchStudents();
   }, [search, filterStream, filterTarget, filterStatus]);
 
-  // ✅ Apply filters manually (optional)
   const handleFilter = () => {
     fetchStudents();
   };
 
-  // ✅ Toggle single student
   const toggleStudent = (studentId) => {
     setSelectedStudents((prev) =>
       prev.includes(studentId)
@@ -71,7 +71,6 @@ export default function StudentsList() {
     );
   };
 
-  // ✅ Select all students
   const toggleSelectAll = () => {
     if (selectedStudents.length === students.length) {
       setSelectedStudents([]);
@@ -82,58 +81,55 @@ export default function StudentsList() {
 
   // ✅ Generate Admit Cards (progress)
   const generateAdmitCards = async () => {
-  if (selectedStudents.length === 0) {
-    toast.error("No students selected");
-    return;
-  }
-
-  setLoadingGenerate(true);
-  setProgressGenerate({ current: 0, total: selectedStudents.length });
-
-  try {
-    for (let i = 0; i < selectedStudents.length; i++) {
-      const studentId = selectedStudents[i];
-      setProgressGenerate({ current: i + 1, total: selectedStudents.length });
-
-      try {
-        const res = await axios.post(
-          "http://localhost:8000/api/admin/bulk-generate-admit-cards",
-          { selectedStudents: [studentId] },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        // 🔥 Backend validation message (exam date missing / roll number missing)
-        if (!res.data.success) {
-          toast.error(res.data.message || "Unable to generate admit card.");
-          break; // ❗ Stop entire batch because the condition affects all
-        }
-
-        // Update UI state
-        setStudents((prev) =>
-          prev.map((s) =>
-            s.studentId === studentId ? { ...s, admitCardGenerated: true } : s
-          )
-        );
-      } catch (error) {
-        // 🔥 Backend error message forwarding
-        const msg =
-          error.response?.data?.message ||
-          error.message ||
-          "Failed to generate admit card.";
-
-        toast.error(msg);
-        break; // Stop further processing
-      }
-
-      await new Promise((r) => setTimeout(r, 300));
+    if (selectedStudents.length === 0) {
+      toast.error("No students selected");
+      return;
     }
 
-    fetchStudents();
-  } finally {
-    setLoadingGenerate(false);
-    setProgressGenerate({ current: 0, total: 0 });
-  }
-};
+    setLoadingGenerate(true);
+    setProgressGenerate({ current: 0, total: selectedStudents.length });
+
+    try {
+      for (let i = 0; i < selectedStudents.length; i++) {
+        const studentId = selectedStudents[i];
+        setProgressGenerate({ current: i + 1, total: selectedStudents.length });
+
+        try {
+          const res = await axios.post(
+            `${backendURL}/api/admin/bulk-generate-admit-cards`,
+            { selectedStudents: [studentId] },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          if (!res.data.success) {
+            toast.error(res.data.message || "Unable to generate admit card.");
+            break;
+          }
+
+          setStudents((prev) =>
+            prev.map((s) =>
+              s.studentId === studentId ? { ...s, admitCardGenerated: true } : s
+            )
+          );
+        } catch (error) {
+          const msg =
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to generate admit card.";
+
+          toast.error(msg);
+          break;
+        }
+
+        await new Promise((r) => setTimeout(r, 300));
+      }
+
+      fetchStudents();
+    } finally {
+      setLoadingGenerate(false);
+      setProgressGenerate({ current: 0, total: 0 });
+    }
+  };
 
   // ✅ Send Admit Cards (progress)
   const sendAdmitCardEmails = async () => {
@@ -151,7 +147,7 @@ export default function StudentsList() {
         setProgressSend({ current: i + 1, total: selectedStudents.length });
 
         await axios.post(
-          "http://localhost:8000/api/admin/bulk-send-admit-cards",
+          `${backendURL}/api/admin/bulk-send-admit-cards`,
           { selectedStudents: [studentId] },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -179,7 +175,7 @@ export default function StudentsList() {
   // ✅ Download single admit card
   const handleDownloadAdmitCard = async (studentId) => {
     try {
-      const res = await axios.get(`http://localhost:8000/api/students/admit-card/${studentId}`, {
+      const res = await axios.get(`${backendURL}/api/students/admit-card/${studentId}`, {
         responseType: "blob",
       });
 
@@ -200,10 +196,9 @@ export default function StudentsList() {
     }
   };
 
-  // ✅ Clear filters
   const clearFilters = () => {
     setSearch("");
-    setFilterStream("");
+       setFilterStream("");
     setFilterTarget("");
     setFilterStatus("");
     fetchStudents();
@@ -219,217 +214,258 @@ export default function StudentsList() {
             <p className="text-sm sm:text-base text-slate-600">Generate and track Admit Card status</p>
           </div>
 
-        {/* ================= Search Bar ================= */}
-        {/* Search Bar - Full Width */}
-        <div className="mb-4 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-          <Input
-            type="text"
-            placeholder="Search by Name or ID..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
-          />
-        </div>
-
-        {/* Filters Below Search */}
-        <div className="">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex flex-col gap-1 w-full sm:w-auto sm:flex-1">
-              <Select
-                value={filterStream}
-                onValueChange={(value) => setFilterStream(value)}
-              >
-                <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0 w-full">
-                  <SelectValue placeholder="Select Stream" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="PCM">PCM</SelectItem>
-                  <SelectItem value="PCB">PCB</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-1 w-full sm:w-auto sm:flex-1">
-             <Select
-                value={filterTarget}
-                onValueChange={(value) => setFilterTarget(value)}
-              >
-                <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0 w-full">
-                  <SelectValue placeholder="Select Target" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="JEE">JEE</SelectItem>
-                  <SelectItem value="NEET">NEET</SelectItem>
-                  <SelectItem value="CBSE Board">CBSE Board</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-1 w-full sm:w-auto sm:flex-1">
-              <Select
-                value={filterStatus || "all"}
-                onValueChange={(value) => setFilterStatus(value === "all" ? "" : value)}
-              >
-                <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0 w-full">
-                  <SelectValue placeholder="Select Status" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Generated">Admit Card Generated</SelectItem>
-                  <SelectItem value="Sent">Admit Card Sent</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex gap-2 w-full sm:w-auto">
-              <Button
-                onClick={clearFilters}
-                variant="default"
-                className="flex-1 sm:flex-initial w-full sm:w-auto"
-              >
-                Clear
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* ================= Action Buttons ================= */}
-        <div className="flex flex-wrap gap-3 mb-4">
-          <Button
-            onClick={generateAdmitCards}
-            disabled={loadingGenerate || loadingSend}
-            variant="default"
-            className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-          >
-            <FileText className="w-4 h-4" />
-            {loadingGenerate
-              ? `Generating (${progressGenerate.current}/${progressGenerate.total})`
-              : "Generate Admit Cards"}
-          </Button>
-
-          <Button
-            onClick={sendAdmitCardEmails}
-            disabled={loadingSend || loadingGenerate}
-            variant="default"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
-          >
-            <Mail className="w-4 h-4" />
-            {loadingSend
-              ? `Sending (${progressSend.current}/${progressSend.total})`
-              : "Send Emails"}
-          </Button>
-        </div>
-
-        {/* ================= Progress Bars ================= */}
-        {loadingGenerate && progressGenerate.total > 0 && (
-          <div className="w-full bg-gray-200 h-2 rounded mb-3">
-            <div
-              className="bg-blue-600 h-2 rounded"
-              style={{
-                width: `${(progressGenerate.current / progressGenerate.total) * 100}%`,
-                transition: "width 0.3s ease",
-              }}
+          {/* ================= Search Bar ================= */}
+          <div className="mb-4 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Search by Name or ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
             />
           </div>
-        )}
 
-        {loadingSend && progressSend.total > 0 && (
-          <div className="w-full bg-gray-200 h-2 rounded mb-3">
-            <div
-              className="bg-green-600 h-2 rounded"
-              style={{
-                width: `${(progressSend.current / progressSend.total) * 100}%`,
-                transition: "width 0.3s ease",
-              }}
-            />
+          {/* ================= Filters ================= */}
+          <div className="">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-1 w-full sm:w-auto sm:flex-1">
+                <Select
+                  value={filterStream}
+                  onValueChange={(value) => setFilterStream(value)}
+                >
+                  <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 w-full">
+                    <SelectValue placeholder="Select Stream" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="PCM">PCM</SelectItem>
+                    <SelectItem value="PCB">PCB</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-1 w-full sm:w-auto sm:flex-1">
+                <Select
+                  value={filterTarget}
+                  onValueChange={(value) => setFilterTarget(value)}
+                >
+                  <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 w-full">
+                    <SelectValue placeholder="Select Target" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="JEE">JEE</SelectItem>
+                    <SelectItem value="NEET">NEET</SelectItem>
+                    <SelectItem value="CBSE Board">CBSE Board</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-1 w-full sm:w-auto sm:flex-1">
+                <Select
+                  value={filterStatus || "all"}
+                  onValueChange={(value) => setFilterStatus(value === "all" ? "" : value)}
+                >
+                  <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 w-full">
+                    <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="Generated">Admit Card Generated</SelectItem>
+                    <SelectItem value="Sent">Admit Card Sent</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button
+                  onClick={clearFilters}
+                  variant="default"
+                  className="flex-1 sm:flex-initial"
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* ================= Students Table ================= */}
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-          <table className="w-full">
-          <thead className="bg-gray-100 text-left">
-            <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-6 py-4 text-left">
-                <Checkbox
-                  onChange={toggleSelectAll}
-                  checked={
-                    selectedStudents.length === students.length && students.length > 0
-                  }
-                  className="border-slate-300"
-                />
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Student ID</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Stream</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Target</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
+          {/* ================= Action Buttons ================= */}
+          <div className="flex flex-wrap gap-3 mb-4">
+            <Button
+              onClick={generateAdmitCards}
+              disabled={loadingGenerate || loadingSend}
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              {loadingGenerate
+                ? `Generating (${progressGenerate.current}/${progressGenerate.total})`
+                : "Generate Admit Cards"}
+            </Button>
 
-          <tbody>
-            {students.length > 0 ? (
-              students.map((student) => (
-                <tr key={student._id}>
-                  <td className="text-center">
-                    {student.admitCardSent ? (
-                      <span className="text-green-600 font-semibold inline-flex items-center gap-1"><CheckCheck className="w-4 h-4" /></span>
-                    ) : (
+            <Button
+              onClick={sendAdmitCardEmails}
+              disabled={loadingSend || loadingGenerate}
+              variant="default"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+            >
+              <Mail className="w-4 h-4" />
+              {loadingSend
+                ? `Sending (${progressSend.current}/${progressSend.total})`
+                : "Send Emails"}
+            </Button>
+          </div>
+
+          {/* ================= Progress Bars ================= */}
+          {loadingGenerate && progressGenerate.total > 0 && (
+            <div className="w-full bg-gray-200 h-2 rounded mb-3">
+              <div
+                className="bg-blue-600 h-2 rounded"
+                style={{
+                  width: `${(progressGenerate.current / progressGenerate.total) * 100}%`,
+                  transition: "width 0.3s ease",
+                }}
+              ></div>
+            </div>
+          )}
+
+          {loadingSend && progressSend.total > 0 && (
+            <div className="w-full bg-gray-200 h-2 rounded mb-3">
+              <div
+                className="bg-green-600 h-2 rounded"
+                style={{
+                  width: `${(progressSend.current / progressSend.total) * 100}%`,
+                  transition: "width 0.3s ease",
+                }}
+              ></div>
+            </div>
+          )}
+
+          {/* ================= Students Table ================= */}
+          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-100 text-left">
+                  <tr className="border-b border-slate-200 bg-slate-50">
+                    <th className="px-6 py-4 text-left">
                       <Checkbox
-                        onChange={() => toggleStudent(student.studentId)}
-                        checked={selectedStudents.includes(student.studentId)}
-                        className="h-4 w-4"
+                        onChange={toggleSelectAll}
+                        checked={
+                          selectedStudents.length === students.length &&
+                          students.length > 0
+                        }
+                        className="border-slate-300"
                       />
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-slate-900">{student.studentId}</td>
-                  <td className="px-6 py-4 text-sm text-slate-900">{student.studentName}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{student.stream}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{student.target}</td>
-                  <td className="px-6 py-4 text-sm">
-                    {student.admitCardSent ? (
-                      <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">Sent</Badge>
-                    ) : student.admitCardGenerated ? (
-                      <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-100">Generated</Badge>
-                    ) : (
-                      <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100">Pending</Badge>
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Student ID
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Stream
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Target
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
 
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    {student.admitCardGenerated ? (
-                      <Button
-                        onClick={() => handleDownloadAdmitCard(student.studentId)}
-                        variant="default"
-                        size="sm"
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        View / Download
-                      </Button>
-                    ) : (
-                      <Button size="sm" className="bg-slate-200 text-slate-400 hover:bg-slate-200 cursor-not-allowed">View / Download</Button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className="px-6 py-12 text-center">
-                   <p className="text-slate-500">No students found</p>
-                </td>
-              </tr>
-            )}
-          </tbody>
-          </table>
+                <tbody>
+                  {students.length > 0 ? (
+                    students.map((student) => (
+                      <tr key={student._id}>
+                        <td className="text-center">
+                          {student.admitCardSent ? (
+                            <span className="text-green-600 font-semibold inline-flex items-center gap-1">
+                              <CheckCheck className="w-4 h-4" />
+                            </span>
+                          ) : (
+                            <Checkbox
+                              onChange={() => toggleStudent(student.studentId)}
+                              checked={selectedStudents.includes(student.studentId)}
+                              className="h-4 w-4"
+                            />
+                          )}
+                        </td>
+
+                        <td className="px-6 py-4 text-sm font-medium text-slate-900">
+                          {student.studentId}
+                        </td>
+
+                        <td className="px-6 py-4 text-sm text-slate-900">
+                          {student.studentName}
+                        </td>
+
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          {student.stream}
+                        </td>
+
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          {student.target}
+                        </td>
+
+                        <td className="px-6 py-4 text-sm">
+                          {student.admitCardSent ? (
+                            <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+                              Sent
+                            </Badge>
+                          ) : student.admitCardGenerated ? (
+                            <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-100">
+                              Generated
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                              Pending
+                            </Badge>
+                          )}
+                        </td>
+
+                        <td className="px-6 py-4">
+                          {student.admitCardGenerated ? (
+                            <Button
+                              onClick={() =>
+                                handleDownloadAdmitCard(student.studentId)
+                              }
+                              variant="default"
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              View / Download
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              className="bg-slate-200 text-slate-400 hover:bg-slate-200 cursor-not-allowed"
+                            >
+                              View / Download
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className="px-6 py-12 text-center">
+                        <p className="text-slate-500">No students found</p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
         </div>
       </div>
     </div>
