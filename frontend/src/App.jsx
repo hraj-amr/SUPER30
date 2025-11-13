@@ -4,7 +4,7 @@ import RegisterStudent from "./pages/RegisterStudent";
 import Success from "./pages/Success";
 import Dashboard from "./pages/Dashboard";
 import StudentsList from "./pages/StudentsList";
-import AdminLogin from "./pages/admin/AdminLogin";
+import AdminLogin from "./pages/admin/adminLogin";
 import AdminRoute from "./auth/AdminRoute";
 
 import { Toaster } from "sonner";
