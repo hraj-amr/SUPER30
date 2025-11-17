@@ -37,7 +37,7 @@ export const bulkGenerateAdmitCards = async (req, res) => {
     if (missingRoll.length > 0) {
       return res.status(400).json({
         success: false,
-        message: `Cannot generate admit cards.<br/> Please generate roll numbers first.`,
+        message: `Cannot generate admit cards. Please generate roll numbers first.`,
       });
     }
 

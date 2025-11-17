@@ -1,9 +1,9 @@
 import express from "express";
 import { adminLogin } from "../controllers/adminAuthController.js";
-import { deleteAllStudents, generateRollNumbers, getDashboardStats, getSummaryStats } from "../controllers/adminController.js";
+import { deleteAllStudents, generateRollNumbers, getDashboardStats, getExamSettings, getSummaryStats, updateExamSettings } from "../controllers/adminController.js";
 import { adminAuth } from "../middlewares/adminAuth.js";
 import { bulkGenerateAdmitCards, bulkSendAdmitCards } from "../controllers/bulkAdmitController.js";
-import { getExamSettings, updateExamSettings } from "../controllers/settingsController.js";
+
 
 const router = express.Router();
 
