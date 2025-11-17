@@ -60,11 +60,11 @@ export const createAdmitCardBuffer = (student, examDate) => {
     drawRow(
       "Test Venue",
       "British School Gurukul, Near Chopra Agencies, South Bisar Tank, Gaya (Bihar)",
-      startY + 126
+      startY + 135 // 126
     );
-    drawRow("Time", "09:00 AM - 11:00 AM", startY + 153);
-    drawRow("Date", examDate || "-", startY + 171);
-    drawRow("Reporting Time", "08:00 AM", startY + 189);
+    drawRow("Time", "09:00 AM - 11:00 AM", startY + 172); // 153
+    drawRow("Date", examDate || "-", startY + 190); // 171
+    drawRow("Reporting Time", "08:00 AM", startY + 208); // 189
 
     doc.rect(470, startY, 100, 130).stroke();
     doc.fontSize(8).font("Helvetica").text("Affix", 460, startY + 50, { align: "center" });

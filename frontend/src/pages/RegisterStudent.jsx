@@ -15,7 +15,10 @@ export default function RegisterStudent() {
   const navigate = useNavigate();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    permanentAddress: "",
+    presentAddress: "",
+  });
   const [scholarship, setScholarship] = useState(false);
   const [passportPhoto, setPassportPhoto] = useState(null);
   const [identityPhoto, setIdentityPhoto] = useState(null);
@@ -26,8 +29,18 @@ export default function RegisterStudent() {
     setFormData((prev) => ({ ...prev, classMoving: "10th to 11th" }));
   }, []);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Character limit validation for address fields only
+    if (
+      (name === "permanentAddress" || name === "presentAddress") &&
+      value.length > 110
+    ) {
+      return; // ignore entry if over limit
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleFileChange = (name, file) => {
@@ -145,37 +158,45 @@ export default function RegisterStudent() {
           <FormSection title="Family Information" description="Enter your parent's details">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
+              {/* Father Name */}
               <Field>
                 <FieldLabel className="text-sm font-medium text-foreground mb-2">
                   Father Name<span className="text-red-500"> *</span>
                 </FieldLabel>
-                <Input name="fatherName" placeholder="Enter Father's Full Name"
+                <Input
+                  name="fatherName"
+                  placeholder="Enter Father's Full Name"
                   onChange={handleChange}
                   className="border border-slate-200 rounded-lg bg-white w-full"
                   required
                 />
               </Field>
 
+              {/* Mother Name */}
               <Field>
                 <FieldLabel className="text-sm font-medium text-foreground mb-2">
                   Mother Name<span className="text-red-500"> *</span>
                 </FieldLabel>
-                <Input name="motherName" placeholder="Enter Mother's Full Name"
+                <Input
+                  name="motherName"
+                  placeholder="Enter Mother's Full Name"
                   onChange={handleChange}
                   className="border border-slate-200 rounded-lg bg-white w-full"
                   required
                 />
               </Field>
 
+              {/* Parent Mobile */}
               <Field>
                 <FieldLabel className="text-sm font-medium text-foreground mb-2">
                   Parent Mobile No.<span className="text-red-500"> *</span>
                 </FieldLabel>
                 <div className="flex items-center w-full">
-                  <span className="h-10 flex items-center px-3 bg-slate-100 border border-slate-200/60 border-r-0 rounded-l-lg text-sm text-slate-700">
+                  <span className="h-10 flex items-center px-3 bg-slate-100 border border-slate-200/60 rounded-l-lg text-sm text-slate-700 shadow-sm">
                     +91
                   </span>
-                  <Input className="h-10 bg-white border border-slate-200/60 border-l-0 rounded-l-none rounded-r-lg shadow-sm w-full"
+                  <Input
+                    className="h-10 bg-white border border-slate-200/60 border-l-0 rounded-l-none rounded-r-lg shadow-sm w-full"
                     type="tel"
                     name="parentMobile"
                     placeholder="Enter Mobile Number"
@@ -186,15 +207,37 @@ export default function RegisterStudent() {
                 </div>
               </Field>
 
+              {/* WhatsApp Number */}
+              <Field>
+                <FieldLabel className="text-sm font-medium text-foreground mb-2">
+                  WhatsApp Number
+                </FieldLabel>
+                <div className="flex items-center w-full">
+                  <span className="h-10 flex items-center px-3 bg-slate-100 border border-slate-200/60 rounded-l-lg text-sm text-slate-700 shadow-sm">
+                    +91
+                  </span>
+                  <Input
+                    className="h-10 bg-white border border-slate-200/60 border-l-0 rounded-l-none rounded-r-lg shadow-sm w-full"
+                    type="tel"
+                    name="whatsappMobile"
+                    placeholder="Enter WhatsApp Number"
+                    maxLength="10"
+                    onChange={handleChange}
+                  />
+                </div>
+              </Field>
+
+              {/* Student Mobile */}
               <Field>
                 <FieldLabel className="text-sm font-medium text-foreground mb-2">
                   Student Mobile No.<span className="text-red-500"> *</span>
                 </FieldLabel>
                 <div className="flex items-center w-full">
-                  <span className="h-10 flex items-center px-3 bg-slate-100 border border-slate-200/60 border-r-0 rounded-l-lg text-sm text-slate-700">
+                  <span className="h-10 flex items-center px-3 bg-slate-100 border border-slate-200/60 rounded-l-lg text-sm text-slate-700 shadow-sm">
                     +91
                   </span>
-                  <Input className="h-10 bg-white border border-slate-200/60 border-l-0 rounded-l-none rounded-r-lg shadow-sm w-full"
+                  <Input
+                    className="h-10 bg-white border border-slate-200/60 border-l-0 rounded-l-none rounded-r-lg shadow-sm w-full"
                     type="tel"
                     name="studentMobile"
                     placeholder="Enter Mobile Number"
@@ -217,11 +260,17 @@ export default function RegisterStudent() {
                 </FieldLabel>
                 <textarea
                   name="permanentAddress"
-                  placeholder="Enter Your Permanent Address"
-                  onChange={handleChange}
-                  className="border border-slate-200 rounded-lg p-3 bg-white min-h-20 w-full"
-                  required
+                  value={formData.permanentAddress}
+                  onChange={(e) =>
+                    setFormData({ ...formData, permanentAddress: e.target.value })
+                  }
+                  maxLength={110}
+                  className="border rounded-lg p-3 w-full"
                 />
+
+                <p className="text-xs text-right">
+                  {formData.permanentAddress.length} / 110
+                </p>
               </Field>
 
               <Field className="col-span-2">
@@ -230,11 +279,17 @@ export default function RegisterStudent() {
                 </FieldLabel>
                 <textarea
                   name="presentAddress"
-                  placeholder="Enter Your Present Address"
-                  onChange={handleChange}
-                  className="border border-slate-200 rounded-lg p-3 bg-white min-h-20 w-full"
-                  required
+                  value={formData.presentAddress}
+                  onChange={(e) =>
+                    setFormData({ ...formData, presentAddress: e.target.value })
+                  }
+                  maxLength={110}
+                  className="border rounded-lg p-3 w-full"
                 />
+
+                <p className="text-xs text-right">
+                  {formData.presentAddress.length} / 110
+                </p>
               </Field>
             </div>
           </FormSection>
@@ -359,7 +414,7 @@ export default function RegisterStudent() {
                     setFormData({ ...formData, scholarshipOffered: boolValue });
                   }}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="border border-slate-200 rounded-lg bg-white w-full">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
 
@@ -420,10 +475,10 @@ export default function RegisterStudent() {
           >
             {isSubmitting ? (
               <>
-                <Spinner /> Registering...
+                <Spinner /> Submitting...
               </>
             ) : (
-              "Register Student"
+              "Submit"
             )}
           </Button>
 

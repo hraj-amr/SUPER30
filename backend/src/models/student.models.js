@@ -52,10 +52,12 @@ const studentSchema = new mongoose.Schema({
     },
     permanentAddress: {
         type: String,
+        maxlength: 110,
         required: true
     },
     presentAddress: {
         type: String,
+        maxlength: 110,
         required: true
     },
     parentMobile: {
@@ -64,6 +66,10 @@ const studentSchema = new mongoose.Schema({
         match: /^[0-9]{10}$/  // validates 10-digit number
     },
     studentMobile: {
+        type: String,
+        match: /^[0-9]{10}$/
+    },
+    whatsappMobile: {
         type: String,
         match: /^[0-9]{10}$/
     },
@@ -112,7 +118,7 @@ const studentSchema = new mongoose.Schema({
         type: Boolean, 
         default: false 
     },
-    createdAt: {
+    submittedAt: {
         type: Date,
         default: Date.now
     }

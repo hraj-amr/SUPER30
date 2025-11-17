@@ -33,6 +33,7 @@ const SHEET_NAME = process.env.GOOGLE_SHEET_NAME || "Sheet1";
 // HEADER COLUMNS
 
 const headers = [
+  "Submission Timestamp", 
   "Roll No",
   "Student ID",
   "Student Name",
@@ -48,6 +49,7 @@ const headers = [
   "Present Address",
   "Parent Mobile",
   "Student Mobile",
+  "Whatsapp Mobile",
   "Previous School",
   "Previous Percentage",
   "Scholarship Offered",
@@ -71,6 +73,7 @@ export const appendToGoogleSheet = async (student) => {
 
     // Prepare student row
     const row = [
+      student.submittedAt?.toLocaleString() || "",
       student.rollNo || "",
       student.studentId || "",
       student.studentName || "",
@@ -86,6 +89,7 @@ export const appendToGoogleSheet = async (student) => {
       student.presentAddress || "",
       student.parentMobile || "",
       student.studentMobile || "",
+      student.whatsappMobile || "",
       student.previousSchool || "",
       student.previousResultPercentage || "",
       student.scholarshipOffered ? "Yes" : "No",
@@ -130,6 +134,7 @@ export const updateSheetWithAllStudents = async () => {
     const students = await Student.find().sort({ rollNo: 1 });
 
     const rows = students.map((s) => [
+      s.submittedAt?.toLocaleString() || "",
       s.rollNo || "",
       s.studentId || "",
       s.studentName || "",
@@ -145,6 +150,7 @@ export const updateSheetWithAllStudents = async () => {
       s.presentAddress || "",
       s.parentMobile || "",
       s.studentMobile || "",
+      s.whatsappMobile || "",
       s.previousSchool || "",
       s.previousResultPercentage || "",
       s.scholarshipOffered ? "Yes" : "No",
@@ -175,6 +181,7 @@ export const updateSheetWithStreamSeparation = async () => {
     const pcb = await Student.find({ stream: "PCB" }).sort({ rollNo: 1 });
 
     const pcmRows = pcm.map((s) => [
+      s.submittedAt?.toLocaleString() || "",
       s.rollNo || "",
       s.studentId || "",
       s.studentName || "",
@@ -190,6 +197,7 @@ export const updateSheetWithStreamSeparation = async () => {
       s.presentAddress || "",
       s.parentMobile || "",
       s.studentMobile || "",
+      s.whatsappMobile || "",
       s.previousSchool || "",
       s.previousResultPercentage || "",
       s.scholarshipOffered ? "Yes" : "No",
@@ -199,6 +207,7 @@ export const updateSheetWithStreamSeparation = async () => {
     ]);
 
     const pcbRows = pcb.map((s) => [
+      s.submittedAt?.toLocaleString() || "",
       s.rollNo || "",
       s.studentId || "",
       s.studentName || "",
@@ -214,6 +223,7 @@ export const updateSheetWithStreamSeparation = async () => {
       s.presentAddress || "",
       s.parentMobile || "",
       s.studentMobile || "",
+      s.whatsappMobile || "",
       s.previousSchool || "",
       s.previousResultPercentage || "",
       s.scholarshipOffered ? "Yes" : "No",
