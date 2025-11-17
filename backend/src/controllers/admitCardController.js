@@ -1,48 +1,35 @@
+// admitCardController.js
 import PDFDocument from "pdfkit";
 import Student from "../models/student.models.js";
 import Settings from "../models/settings.models.js";
 import { formatDateDDMMYYYY } from "../utils/googleSheets.js";
 import path from "path";
-import fs from "fs";
 
-export const generateAdmitCard = async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    const student = await Student.findOne({ studentId });
-    const settings = await Settings.findOne();
+const bannerPath = path.resolve("assets/banner.png"); // backend/assets/banner.png
 
-    const examDate = formatDateDDMMYYYY(settings?.examDate || "Not Set");
-
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
-
+// 🔹 Helper: create PDF buffer in memory
+export const createAdmitCardBuffer = (student, examDate) => {
+  return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "A4", margin: 20 });
+    const chunks = [];
 
-    const tempPath = `/tmp/${studentId}.pdf`;
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
 
-    const bannerPath = path.resolve("assets/banner.png");
-
-    const filePath = path.join(folderPath, `${student.studentId}.pdf`);
-    const stream = fs.createWriteStream(filePath);
-    doc.pipe(stream);
-
-    // INSERT CONSTANT BANNER IMAGE
+    // ====== YOUR EXISTING PDF LAYOUT CODE STARTS ======
     doc.image(bannerPath, 20, 20, { width: 555 });
     doc.y = 150;
 
-    
-      // ADMIT CARD TITLE
     doc.fillColor("#000").fontSize(18).font("Helvetica-Bold")
-       .text("ADMIT CARD", { align: "center", underline: true });
+      .text("ADMIT CARD", { align: "center", underline: true });
     doc.moveDown(0.5);
 
-      // CANDIDATE COPY SECTION
     const candLabelY = doc.y;
     doc.rect(15, candLabelY, 565, 25).fillAndStroke("#E0E0E0", "#000");
     doc.fillColor("#000").fontSize(11).font("Helvetica-Bold")
-       .text("Candidate's Copy", 20, candLabelY + 8, { align: "center" });
-    
+      .text("Candidate's Copy", 20, candLabelY + 8, { align: "center" });
+
     doc.moveDown(0.5);
 
     const candBoxTop = doc.y;
@@ -57,7 +44,6 @@ export const generateAdmitCard = async (req, res) => {
 
     doc.fontSize(10).font("Helvetica");
 
-    // Table-like layout
     const drawRow = (label, value, y) => {
       doc.text(label, leftX, y);
       doc.text(":", leftX + labelWidth, y);
@@ -71,25 +57,26 @@ export const generateAdmitCard = async (req, res) => {
     drawRow("Class", student.classMoving, startY + 72);
     drawRow("Gender", student.gender || "-", startY + 90);
     drawRow("Address", student.permanentAddress, startY + 108);
-    drawRow("Test Venue", "British School Gurukul, Near Chopra Agencies, South Bisar Tank, Gaya (Bihar)", startY + 126);
+    drawRow(
+      "Test Venue",
+      "British School Gurukul, Near Chopra Agencies, South Bisar Tank, Gaya (Bihar)",
+      startY + 126
+    );
     drawRow("Time", "09:00 AM - 11:00 AM", startY + 153);
     drawRow("Date", examDate || "-", startY + 171);
-    drawRow("Reporting Time", "08:00 AM" || "-", startY + 189);
+    drawRow("Reporting Time", "08:00 AM", startY + 189);
 
-    /* Photo Box */
     doc.rect(470, startY, 100, 130).stroke();
     doc.fontSize(8).font("Helvetica").text("Affix", 460, startY + 50, { align: "center" });
     doc.text("Photograph", 460, startY + 62, { align: "center" });
     doc.text("Here", 460, startY + 74, { align: "center" });
 
-    /* Signature inside box */
     doc.fontSize(9).font("Helvetica");
     doc.text("Invigilator's Sign", leftX, candBoxTop + candBoxHeight - 15);
     doc.text("Candidate's Sign", 380, candBoxTop + candBoxHeight - 15);
 
     doc.moveDown(2);
 
-      //  INSTRUCTIONS
     doc.fontSize(10).font("Helvetica-Bold").text("NOTE:", leftX);
     doc.moveDown(0.3);
 
@@ -110,13 +97,11 @@ export const generateAdmitCard = async (req, res) => {
 
     doc.moveDown(1);
 
-    
-      // INVIGILATOR COPY
     const invLabelY = doc.y;
     doc.rect(15, invLabelY, 565, 25).fillAndStroke("#E0E0E0", "#000");
     doc.fillColor("#000").fontSize(11).font("Helvetica-Bold")
-       .text("Invigilator's Copy", 20, invLabelY + 8, { align: "center" });
-    
+      .text("Invigilator's Copy", 20, invLabelY + 8, { align: "center" });
+
     doc.moveDown(0.5);
 
     const invBoxTop = doc.y;
@@ -136,36 +121,42 @@ export const generateAdmitCard = async (req, res) => {
     drawRow("Target", student.target, invStartY + 90);
     drawRow("Date", examDate || "-", invStartY + 108);
 
-
-    /* Photo box Invigilator copy */
     doc.rect(470, invStartY, 100, 130).stroke();
     doc.fontSize(8).text("Affix", 460, invStartY + 50, { align: "center" });
     doc.text("Photograph", 460, invStartY + 62, { align: "center" });
     doc.text("Here", 460, invStartY + 74, { align: "center" });
 
-    // Signatures
     doc.fontSize(9).font("Helvetica");
     doc.text("Invigilator's Sign", leftX, invBoxTop + invBoxHeight - 15);
     doc.text("Candidate's Sign", 380, invBoxTop + invBoxHeight - 15);
 
+    // ====== END OF YOUR LAYOUT ======
     doc.end();
+  });
+};
 
-        stream.on("finish", async () => {
-          try {
-            // Mark admit card as generated in DB so frontend status updates
-            await Student.updateOne({ studentId }, { admitCardGenerated: true });
-            console.log(`✅ admitCardGenerated flag set for ${studentId}`);
-          } catch (e) {
-            console.error("Failed to update admitCardGenerated flag:", e.message);
-          }
+// HTTP endpoint: download admit card for one student
+export const generateAdmitCard = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const student = await Student.findOne({ studentId });
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
-          // Send the generated PDF to client (if response supports download)
-          if (res && typeof res.download === "function") {
-            return res.download(filePath);
-          }
-        });
+    const settings = await Settings.findOne();
+    const examDate = formatDateDDMMYYYY(settings?.examDate || "Not Set");
+
+    const pdfBuffer = await createAdmitCardBuffer(student, examDate);
+
+    await Student.updateOne({ studentId }, { admitCardGenerated: true });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${student.studentId}.pdf"`
+    );
+    return res.send(pdfBuffer);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: error.message });
+    console.error("❌ generateAdmitCard error:", error);
+    return res.status(500).json({ error: error.message });
   }
 };
