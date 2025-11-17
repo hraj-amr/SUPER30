@@ -19,10 +19,9 @@ export const generateAdmitCard = async (req, res) => {
 
     const doc = new PDFDocument({ size: "A4", margin: 20 });
 
-    const folderPath = "admitCards";
-    if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
+    const tempPath = `/tmp/${studentId}.pdf`;
 
-    const bannerPath = path.resolve("../frontend/src/assets/banner.png");
+    const bannerPath = path.resolve("assets/banner.png");
 
     const filePath = path.join(folderPath, `${student.studentId}.pdf`);
     const stream = fs.createWriteStream(filePath);
