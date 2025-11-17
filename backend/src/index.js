@@ -12,14 +12,19 @@ import adminRoutes from "./routes/adminRoutes.js";
 // initialise express app
 const app = express();
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173",          // Local frontend
-    "https://super30-psi.vercel.app" // Production frontend
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://super-30.vercel.app"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
+
+app.options("*", cors());
 
 // Connect Database
 connectDB()
