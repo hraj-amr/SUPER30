@@ -7,13 +7,19 @@ import { bulkGenerateAdmitCards, bulkSendAdmitCards } from "../controllers/bulkA
 
 const router = express.Router();
 
-// Admin Login (Public Route)
+// ====== PUBLIC ROUTES ======
+// Admin Login
 router.post("/login", adminLogin);
 
-// Generate Roll Number (Protected Route)
+// Get Exam Settings (Public - needed for Home page)
+router.get("/exam-settings", getExamSettings);
+
+
+// ====== PROTECTED ROUTES ======
+// Generate Roll Number
 router.post("/generate-rollno", adminAuth, generateRollNumbers);
 
-// Delete all students (Protected Route)
+// Delete all students
 router.delete("/clear-database", adminAuth, deleteAllStudents);
 
 // Generate and send Admit Card
@@ -24,8 +30,7 @@ router.post("/bulk-send-admit-cards", adminAuth, bulkSendAdmitCards);
 router.get("/dashboard-stats", adminAuth, getDashboardStats);
 router.get("/summary-stats", adminAuth, getSummaryStats);
 
-
-router.get("/exam-settings", adminAuth, getExamSettings);
+// Update Exam Settings (Protected)
 router.post("/exam-settings", adminAuth, updateExamSettings);
 
 export default router;

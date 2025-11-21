@@ -137,30 +137,51 @@ export const getSummaryStats = async (req, res) => {
 export const getExamSettings = async (req, res) => {
   try {
     let settings = await Settings.findOne();
-    if (!settings) settings = await Settings.create({ examDate: "" });
+    if (!settings) {
+      settings = await Settings.create({
+        examDate: "",
+        lastDateToRegister: "",
+        resultDate: "",
+        registrationOpen: true
+      });
+    }
     res.status(200).json(settings);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+
 // Update exam date
 export const updateExamSettings = async (req, res) => {
   try {
-    const { examDate } = req.body;
+    const { examDate, lastDateToRegister, resultDate, registrationOpen } = req.body;
+
+    // Find existing settings first
+    let settings = await Settings.findOne();
+    
+    // Build update object with only provided fields
+    const updateData = {};
+    if (examDate !== undefined) updateData.examDate = examDate;
+    if (lastDateToRegister !== undefined) updateData.lastDateToRegister = lastDateToRegister;
+    if (resultDate !== undefined) updateData.resultDate = resultDate;
+    if (registrationOpen !== undefined) updateData.registrationOpen = registrationOpen;
 
     const updated = await Settings.findOneAndUpdate(
       {},
-      { examDate },
+      updateData,
       { new: true, upsert: true }
     );
 
     res.status(200).json({
       success: true,
-      message: "Exam date updated successfully",
+      message: "Exam settings updated successfully",
       settings: updated,
     });
   } catch (error) {
+    console.error("Error updating exam settings:", error);
     res.status(500).json({ message: error.message });
   }
 };
+
+

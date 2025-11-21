@@ -41,10 +41,14 @@ export const registerStudent = async (req, res) => {
 
 export const getAllStudents = async (req, res) => {
   try {
-    const { search, stream, target, status } = req.query;
+    const { search, stream, target, status, page = 1 } = req.query;
+
+    const limit = 100;
+    const skip = (page - 1) * limit;
+
     const query = {};
 
-    // 🔍 Search by name or studentId (case-insensitive)
+    // 🔍 Search
     if (search) {
       query.$or = [
         { studentName: { $regex: search, $options: "i" } },
@@ -52,16 +56,16 @@ export const getAllStudents = async (req, res) => {
       ];
     }
 
-    // 🎓 Stream filter (PCM / PCB)
+    // 🎓 Stream filter
     if (stream) query.stream = stream;
 
-    // 🎯 Target filter (JEE / NEET / CBSE Board)
+    // 🎯 Target filter
     if (target) query.target = target;
 
     // 📄 Status filter
     if (status === "Generated") {
       query.admitCardGenerated = true;
-      query.admitCardSent = { $ne: true }; // not sent yet
+      query.admitCardSent = { $ne: true };
     } else if (status === "Sent") {
       query.admitCardSent = true;
     } else if (status === "Pending") {
@@ -69,15 +73,28 @@ export const getAllStudents = async (req, res) => {
       query.admitCardSent = { $ne: true };
     }
 
-    // ✅ Fetch filtered students (latest first)
-    const students = await Student.find(query).sort({ createdAt: -1 });
+    // 🧮 Total students (for pagination)
+    const totalStudents = await Student.countDocuments(query);
 
-    res.status(200).json({ success: true, data: students });
+    // 🧾 Paginated result
+    const students = await Student.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      data: students,
+      totalStudents,
+      totalPages: Math.ceil(totalStudents / limit),
+      currentPage: Number(page),
+    });
   } catch (error) {
     console.error("❌ Error fetching students:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 
