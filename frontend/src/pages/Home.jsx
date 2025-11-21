@@ -164,7 +164,7 @@ return (
           <DetailsCard
             icon={<Users className="w-10 h-10 text-orange-500" />}
             title="Eligibility"
-            text="Students of Class 11th & 12th (Science)."
+            text="Class 10th to 11th Moving Students"
           />
 
           <DetailsCard
