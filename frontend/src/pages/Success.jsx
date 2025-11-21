@@ -25,8 +25,8 @@ export default function Success() {
           Student ID: <span className="text-blue-600 font-mono">{studentId}</span>
         </p>
 
-        <Link to="/register">
-          <Button className="w-full">Register Another Student</Button>
+        <Link to="/">
+          <Button className="w-full">Go to Home Page</Button>
         </Link>
 
       </div>
