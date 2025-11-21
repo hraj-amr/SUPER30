@@ -130,17 +130,22 @@ export default function RegisterStudent() {
                 <FieldLabel className="block text-sm font-medium text-foreground mb-2">
                   Gender<span className="text-red-500"> *</span>
                 </FieldLabel>
-                <Input className="border border-slate-200 rounded-lg bg-white w-full"
-                  name="gender"
-                  placeholder="Male / Female"
-                  onChange={handleChange}
-                  required
-                />
+
+                <Select name="gender" onValueChange={(value) => handleChange({ target: { name: "gender", value } })} required>
+                  <SelectTrigger className="border border-slate-200 rounded-lg bg-white w-full">
+                    <SelectValue placeholder="Select Gender" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
               </Field>
 
               <Field>
                 <FieldLabel className="block text-sm font-medium text-foreground mb-2">
-                  Email Address<span className="text-red-500"> *</span>
+                  Email Address<span className="text-red-500"> *</span> <span className="text-xs text-gray-500 ml-1">(Admit Card will be sent to this email)</span>
                 </FieldLabel>
                 <Input
                   className="border border-slate-200 rounded-lg bg-white w-full"
