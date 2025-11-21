@@ -16,7 +16,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://super-30.vercel.app"
+      "https://super-30.vercel.app",
+      "https://www.bsgurukul.com"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
