@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import PaginationControls from "@/components/PaginationControls";
 
 export default function StudentsList() {
   const [students, setStudents] = useState([]);
@@ -21,6 +22,8 @@ export default function StudentsList() {
   const [progressGenerate, setProgressGenerate] = useState({ current: 0, total: 0 });
   const [progressSend, setProgressSend] = useState({ current: 0, total: 0 });
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const token = localStorage.getItem("adminToken");
   const backendURL = import.meta.env.VITE_BACKEND_URL;
@@ -36,9 +39,15 @@ export default function StudentsList() {
           stream: filterStream,
           target: filterTarget,
           status: filterStatus,
+          page,
         },
       });
-      const data = res.data.data || res.data;
+
+      const data = res.data.data || [];
+
+      setStudents(data);
+      setTotalPages(res.data.totalPages || 1);
+      
 
       data.sort((a, b) => {
         const na = parseInt((a.studentId || "").replace(/\D/g, "")) || 0;
@@ -57,7 +66,7 @@ export default function StudentsList() {
 
   useEffect(() => {
     fetchStudents();
-  }, [search, filterStream, filterTarget, filterStatus]);
+  }, [search, filterStream, filterTarget, filterStatus, page]);
 
   const handleFilter = () => {
     fetchStudents();
@@ -465,6 +474,7 @@ export default function StudentsList() {
               </table>
             </div>
           </div>
+              <PaginationControls page={page} setPage={setPage} totalPages={totalPages} />
 
         </div>
       </div>

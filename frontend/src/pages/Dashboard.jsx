@@ -17,6 +17,11 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [summary, setSummary] = useState(null);
   const [examDate, setExamDate] = useState("");
+  const [lastDate, setLastDate] = useState("");
+  const [resultDate, setResultDate] = useState("");
+  const [registrationOpen, setRegistrationOpen] = useState(true);
+
+
 
   const token = localStorage.getItem("adminToken");
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#D7263D", "#6A4C93"];
@@ -28,25 +33,41 @@ export default function Dashboard() {
       const res = await axios.get(`${backendURL}/api/admin/exam-settings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setExamDate(res.data.examDate || "");
+      setLastDate(res.data.lastDateToRegister || "");
+      setResultDate(res.data.resultDate || "");
+      setRegistrationOpen(res.data.registrationOpen ?? true);
     } catch (error) {
       console.error("Failed to fetch exam settings:", error);
     }
   };
 
-  const updateExamSettings = async () => {
+  const updateExamSettings = async (data) => {
     try {
+      const payload = data || {
+        examDate,
+        lastDateToRegister: lastDate,
+        resultDate,
+        registrationOpen,
+      };
+      
       await axios.post(
         `${backendURL}/api/admin/exam-settings`,
-        { examDate },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success("Exam date updated successfully!");
+
+      toast.success("Exam settings updated!");
+      
+      // Refresh settings from backend to ensure sync
+      await fetchExamSettings();
     } catch (error) {
-      toast.error("Failed to update exam date");
+      toast.error("Failed to update settings");
       console.error(error);
     }
   };
+
 
   const fetchDashboardData = async () => {
     try {
@@ -237,7 +258,7 @@ export default function Dashboard() {
               title="Set Exam Date"
               description="Configure the exam schedule"
               buttonLabel="Save Exam Date"
-              onClick={updateExamSettings}
+              onClick={() => updateExamSettings()}
               variant="default"
               icon={<Calendar size={20} />}
             >
@@ -248,6 +269,77 @@ export default function Dashboard() {
                 onChange={(e) => setExamDate(e.target.value)}
                 className="text-sm"
               />
+            </ActionCard>
+            
+            <ActionCard
+              title="Set Last Date to Register"
+              description="Deadline for student registrations"
+              buttonLabel="Save"
+              onClick={() => updateExamSettings()}
+              icon={<Calendar size={20} />}
+            >
+              <label className="text-sm font-medium block">Last Date</label>
+              <Input
+                type="date"
+                value={lastDate}
+                onChange={(e) => setLastDate(e.target.value)}
+                className="text-sm"
+              />
+            </ActionCard>
+
+            <ActionCard
+              title="Set Result Date"
+              description="Date when results will be announced"
+              buttonLabel="Save"
+              onClick={() => updateExamSettings()}
+              icon={<Calendar size={20} />}
+            >
+              <label className="text-sm font-medium block">Result Date</label>
+              <Input
+                type="date"
+                value={resultDate}
+                onChange={(e) => setResultDate(e.target.value)}
+                className="text-sm"
+              />
+            </ActionCard>
+
+                        <ActionCard
+              title={registrationOpen ? "Close Registration" : "Open Registration"}
+              description="Open and Close Registration for Students"
+              buttonLabel={registrationOpen ? "Close Registration" : "Open Registration"}
+              onClick={async () => {
+                const newValue = !registrationOpen;
+                
+                try {
+                  await axios.post(
+                    `${backendURL}/api/admin/exam-settings`,
+                    {
+                      examDate,
+                      lastDateToRegister: lastDate,
+                      resultDate,
+                      registrationOpen: newValue,
+                    },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  );
+                  
+                  toast.success(`Registration ${newValue ? 'opened' : 'closed'} successfully!`);
+                  
+                  // Update state after successful API call
+                  setRegistrationOpen(newValue);
+                  
+                  // Refresh all settings to ensure sync
+                  await fetchExamSettings();
+                } catch (error) {
+                  toast.error("Failed to update registration status");
+                  console.error(error);
+                }
+              }}
+              variant={registrationOpen ? "destructive" : "default"}
+              icon={<Users size={20} />}
+            >
+              <p className="text-xs text-muted-foreground">
+                Current Status: <strong>{registrationOpen ? "Open" : "Closed"}</strong>
+              </p>
             </ActionCard>
 
             <ActionCard
@@ -275,7 +367,6 @@ export default function Dashboard() {
                 Permanently delete all student records. This action cannot be undone.
               </p>
             </ActionCard>
-
           </div>
 
           <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground pt-8 mb-4">Analytics</h2>

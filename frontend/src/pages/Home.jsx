@@ -1,95 +1,71 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import DetailsCard from "@/components/DetailsCard";
+import { CalendarDays, Clock, FileCheck, TrendingUp, Users } from "lucide-react";
+
+
+const formatDateForDisplay = (dateString) => {
+  if (!dateString) return "To Be Announced";
+  const [year, month, day] = dateString.split("-");
+  return `${day}-${month}-${year}`;
+};
+
 
 export default function Home() {
   const navigate = useNavigate();
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
-  const [isVerifying, setIsVerifying] = useState(false);
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [settings, setSettings] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const sendOTP = async (e) => {
-    e.preventDefault();
-
-    if (phoneNumber.length !== 10) {
-      toast.error("Please enter a valid 10-digit mobile number.");
-      return;
-    }
-
-    try {
-      const res = await axios.post(`${backendURL}/api/students/send-otp`, {
-        mobile: phoneNumber,
-      });
-
-      if (res.data.success) {
-        setOtpSent(true);
-        setIsModalOpen(true);
-        toast.success("OTP sent successfully!");
-      } else {
-        throw new Error("Failed to send OTP");
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`${backendURL}/api/admin/exam-settings`);
+        setSettings(res.data);
+      } catch (error) {
+        console.error("Failed to fetch settings:", error);
+        toast.error("Failed to load exam settings");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to send OTP");
-    }
-  };
-
-  const verifyOTP = async () => {
-    if (otpCode.length !== 6) {
-      toast.error("Invalid OTP. Please enter a 6-digit code.");
-      return;
-    }
-
-    setIsVerifying(true);
-
-    try {
-      const res = await axios.post(`${backendURL}/api/students/verify-otp`, {
-        mobile: phoneNumber,
-        otp: otpCode,
-      });
-
-      if (res.data.success) {
-        toast.success("OTP Verified! Redirecting...");
-        setIsModalOpen(false);
-        navigate("/register", { state: { mobile: phoneNumber } });
-      } else {
-        throw new Error("OTP did not match");
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "OTP verification failed");
-    } finally {
-      setIsVerifying(false);
-    }
-  };
+    };
+    fetchSettings();
+  }, [backendURL]);
 
 
+return (
+  <div className="min-h-screen bg-gray-50 flex flex-col">
+    
+    {/* ---- Navbar---- */}
+    <header
+      className="fixed top-0 left-0 w-full z-50 shadow-lg transition-all duration-300 px-6 py-4 flex justify-between items-center"
+      style={{
+        background: "oklch(0.98 0.001 70 / 0.35)", 
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)", 
+      }}
+    >
+      <h1 className="text-xl font-bold text-blue-700">
+        British School – Gurukul
+      </h1>
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      
-      {/* ---- Navbar---- */}
-      <header className="w-full py-4 px-8 bg-white shadow-sm flex justify-between items-center">
-        <h1 className="text-xl font-bold text-blue-700">
-          British School – Gurukul
-        </h1>
+      <Button
+        variant="glass"
+        onClick={() => navigate("/admin/dashboard")}
+      >
+        Admin Login
+      </Button>
+    </header>
 
-        <Button
-            variant="glass"
-            onClick={() => navigate("/admin/dashboard")}
-            >
-            Admin Login
-        </Button>
-      </header>
-
-      {/* ---- Hero Section ---- */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+    {/* ---- Hero Section ---- */}
+    <section className="min-h-screen flex items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
           <div className="space-y-8">
@@ -125,10 +101,11 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right Card with Mobile Input */}
+          {/* Right Card */}
           <div className="flex justify-center lg:justify-end">
-            <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
-              {/* Graduation Cap Icon */}
+            <div className="bg-white rounded-lg p-8 w-full max-w-md border border-slate-200">
+
+              {/* Icon */}
               <div className="flex justify-center mb-6">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center">
                   <span className="text-3xl">🎓</span>
@@ -140,77 +117,88 @@ export default function Home() {
               </h3>
 
               <p className="text-center text-gray-600 mb-6">
-                Get Recognition, Scholarship, Cash Prizes & much more.
+                Get Recognition, Scholarship, Cash Prizes & more.
               </p>
 
-              {/* Form */}
-              <form onSubmit={sendOTP} className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="text-sm font-semibold text-gray-700">
-                    Mobile Number
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="tel"
-                      id="phone"
-                      placeholder="Enter your mobile number"
-                      value={phoneNumber}
-                      onChange={(e) =>
-                        setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
-                      }
-                      maxLength="10"
-                      className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none transition font-semibold"
-                    />
-                  </div>
-                </div>
-
+              {/* Simple Register Button */}
+              {loading ? (
                 <Button
-                  type="submit"
-                  className="w-full bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 rounded-lg transition transform hover:scale-105"
+                  disabled
+                  className="w-full bg-gray-200 text-gray-800 font-bold py-3 rounded-lg cursor-not-allowed"
                 >
-                  Get OTP
+                  Loading...
                 </Button>
-              </form>
-
-              {/* OTP Modal */}
-              {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-                  <div className="bg-white rounded-lg p-8 w-[90%] max-w-md">
-                    <h2 className="text-xl font-bold mb-4">Enter OTP</h2>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 border rounded-lg mb-4"
-                      placeholder="Enter 6-digit OTP"
-                      value={otpCode}
-                      onChange={(e) =>
-                        setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-                      }
-                    />
-                    <Button
-                      onClick={verifyOTP}
-                      disabled={isVerifying}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2"
-                    >
-                      {isVerifying ? "Verifying..." : "Verify OTP"}
-                    </Button>
-                    <button
-                      onClick={() => setIsModalOpen(false)}
-                      className="mt-3 w-full text-sm text-gray-500 underline"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
+              ) : settings?.registrationOpen ? (
+                <Button
+                  onClick={() => navigate("/register")}
+                  className="w-full bg-linear-to-r from-blue-500 to-blue-600 
+                  hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 
+                  rounded-lg transition transform hover:scale-105"
+                >
+                  Register Now
+                </Button>
+              ) : (
+                <Button
+                  disabled
+                  className="w-full bg-gray-300 text-gray-800 py-3 rounded-lg cursor-not-allowed"
+                >
+                  Registration Closed
+                </Button>
               )}
+
             </div>
           </div>
         </div>
-      </main>
+      </div>
+    </section>
 
-      {/* ---- Footer ---- */}
-      <footer className="py-4 text-center text-gray-500 text-sm">
-        © {new Date().getFullYear()} British School – Gurukul. All rights reserved.
-      </footer>
-    </div>
-  );
+    {/* ---- Exam Details Section ---- */}
+    <section className="min-h-screen flex items-center py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4 w-full">
+        <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          Exam Details
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <DetailsCard
+            icon={<Users className="w-10 h-10 text-orange-500" />}
+            title="Eligibility"
+            text="Students of Class 11th & 12th (Science)."
+          />
+
+          <DetailsCard
+            icon={<CalendarDays className="w-10 h-10 text-orange-500" />}
+            title="Exam Date"
+            text={formatDateForDisplay(settings?.examDate) || "To Be Announced"}
+          />
+
+          <DetailsCard
+            icon={<Clock className="w-10 h-10 text-orange-500" />}
+            title="Exam Time & Mode"
+            text="9:00 AM – 12:00 PM • Offline (At Center)"
+          />
+
+          <DetailsCard
+            icon={<TrendingUp className="w-10 h-10 text-orange-500" />}
+            title="Last Date to Register"
+            text={formatDateForDisplay(settings?.lastDateToRegister) || "To Be Announced"}
+          />
+
+          <DetailsCard
+            icon={<FileCheck className="w-10 h-10 text-orange-500" />}
+            title="Result Date"
+            text={formatDateForDisplay(settings?.resultDate) || "To Be Announced"}
+          />
+
+        </div>
+      </div>
+    </section>
+
+    {/* ---- Footer ---- */}
+    <footer className="py-4 text-center text-gray-500 text-sm">
+      © {new Date().getFullYear()} British School – Gurukul. All rights reserved.
+    </footer>
+  </div>
+);
 }

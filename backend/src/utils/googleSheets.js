@@ -73,7 +73,7 @@ export const appendToGoogleSheet = async (student) => {
 
     // Prepare student row
     const row = [
-      student.submittedAt?.toLocaleString() || "",
+      student.submittedAt?.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) || "",
       student.rollNo || "",
       student.studentId || "",
       student.studentName || "",
@@ -134,7 +134,7 @@ export const updateSheetWithAllStudents = async () => {
     const students = await Student.find().sort({ rollNo: 1 });
 
     const rows = students.map((s) => [
-      s.submittedAt?.toLocaleString() || "",
+      s.submittedAt?.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) || "",
       s.rollNo || "",
       s.studentId || "",
       s.studentName || "",
@@ -181,7 +181,7 @@ export const updateSheetWithStreamSeparation = async () => {
     const pcb = await Student.find({ stream: "PCB" }).sort({ rollNo: 1 });
 
     const pcmRows = pcm.map((s) => [
-      s.submittedAt?.toLocaleString() || "",
+      s.submittedAt?.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) || "",
       s.rollNo || "",
       s.studentId || "",
       s.studentName || "",
@@ -207,7 +207,7 @@ export const updateSheetWithStreamSeparation = async () => {
     ]);
 
     const pcbRows = pcb.map((s) => [
-      s.submittedAt?.toLocaleString() || "",
+      s.submittedAt?.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) || "",
       s.rollNo || "",
       s.studentId || "",
       s.studentName || "",
