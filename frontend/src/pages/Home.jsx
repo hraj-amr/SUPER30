@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import DetailsCard from "@/components/DetailsCard";
-import { CalendarDays, Clock, FileCheck, TrendingUp, Users } from "lucide-react";
+import { CalendarDays, Clock, FileCheck, Target, TrendingUp, Users } from "lucide-react";
 
 
 const formatDateForDisplay = (dateString) => {
@@ -165,6 +165,12 @@ return (
             icon={<Users className="w-10 h-10 text-orange-500" />}
             title="Eligibility"
             text="Class 10th to 11th Moving Students"
+          />
+
+          <DetailsCard
+            icon={<Target className="w-10 h-10 text-orange-500" />}
+            title="Target"
+            text="Jee Main/Advanced, NEET (UG) - 2028"
           />
 
           <DetailsCard
